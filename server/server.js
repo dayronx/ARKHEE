@@ -11,11 +11,14 @@ const MONGO_URI = "mongodb+srv://dayronttorres_db_user:Arkhe123@cluster0.mfwtti4
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log("✅ Conectado a MongoDB Atlas"))
-    .catch(err => console.error("❌ Error:", err.message));
+    .catch(err => console.error("❌ Error de conexión:", err.message));
 
 // --- MODELOS ---
 const Question = mongoose.model('Question', new mongoose.Schema({
-    topic: String, question: String, correct: String, wrongs: [String]
+    topic: String, 
+    question: String, 
+    correct: String, 
+    wrongs: [String]
 }));
 
 const User = mongoose.model('User', new mongoose.Schema({
@@ -26,24 +29,26 @@ const User = mongoose.model('User', new mongoose.Schema({
 
 // --- RUTAS PREGUNTAS ---
 app.get('/api/questions', async (req, res) => {
-    const questions = await Question.find();
-    res.json(questions);
+    try {
+        const questions = await Question.find();
+        res.json(questions);
+    } catch (err) {
+        res.status(500).json({ error: "Error al obtener preguntas" });
+    }
 });
 
 app.post('/api/questions', async (req, res) => {
     const newQ = new Question(req.body);
     await newQ.save();
-
     res.json(newQ);
 });
 
 app.delete('/api/questions/:id', async (req, res) => {
     await Question.findByIdAndDelete(req.params.id);
-    
     res.json({ message: "Borrado" });
 });
 
-// --- RUTAS USUARIOS (REGISTRO Y LOGIN) ---
+// --- RUTAS USUARIOS ---
 app.post('/api/register', async (req, res) => {
     try {
         const newUser = new User(req.body);
@@ -56,12 +61,30 @@ app.post('/api/register', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
     const { user, pass } = req.body;
-    const found = await User.findOne({ user, pass });
-    if (found) res.json(found);
-    else res.status(401).json({ error: "Credenciales inválidas" });
+    try {
+        // Buscamos al usuario
+        let found = await User.findOne({ user, pass });
+
+        if (found) {
+            // --- BLOQUE DE CORRECCIÓN DE ADMIN ---
+            // Cambia "TU_USUARIO" por el nombre que usas para entrar
+            if (found.user === "dayron" || found.user === "admin") { 
+                if (found.role !== 'ADMIN') {
+                    found.role = 'ADMIN';
+                    await found.save(); // Esto actualiza la Base de Datos de verdad
+                    console.log(`⭐ Rol de ADMIN otorgado a: ${found.user}`);
+                }
+            }
+            // ---------------------------------------
+
+            res.json(found);
+        } else {
+            res.status(401).json({ error: "Credenciales inválidas" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: "Error en el servidor" });
+    }
 });
 
-
-// Busca donde dice const PORT = 4000 y cámbialo por esto:
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Servidor en http://localhost:${PORT}`));

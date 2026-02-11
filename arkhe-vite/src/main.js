@@ -81,15 +81,15 @@ function renderRegister() {
             });
 
             if (res.ok) {
-                alert("✅ Cuenta creada con éxito. Ahora inicia sesión.");
+                alert("Cuenta creada con éxito. Ahora inicia sesión.");
                 renderLogin(); // Volver al login sin recargar toda la página
             } else {
                 const data = await res.json();
-                alert("❌ Error: " + (data.error || "El usuario ya existe"));
+                alert(" Error: " + (data.error || "El usuario ya existe"));
             }
         } catch (err) {
             console.error("Error en fetch:", err);
-            alert("❌ No se pudo conectar con el servidor. ¿Está encendido?");
+            alert("No se pudo conectar con el servidor. ¿Está encendido?");
         }
     });
 
@@ -206,8 +206,8 @@ async function startQuiz(topic) {
             b.style.display = 'block'; b.style.width = '100%'; b.style.margin = '5px 0';
             b.innerText = o;
             b.onclick = () => {
-                if (o === q.correct) alert("✅ Correcto");
-                else alert(`❌ Incorrecto. Era: ${q.correct}`);
+                if (o === q.correct) alert("Correcto");
+                else alert(` Incorrecto. Era: ${q.correct}`);
                 idx++; show();
             };
             document.getElementById('options-container').appendChild(b);
